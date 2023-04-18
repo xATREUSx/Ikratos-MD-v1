@@ -2,11 +2,11 @@ import TicTacToe from '../lib/tictactoe.js'
 
 let handler = async (m, { conn, usedPrefix, command, text }) => {
     conn.game = conn.game ? conn.game : {}
-    if (Object.values(conn.game).find(room => room.id.startsWith('tictactoe') && [room.game.playerX, room.game.playerO].includes(m.sender))) throw 'You are still in the game'
+    if (Object.values(conn.game).find(room => room.id.startsWith('tictactoe') && [room.game.playerX, room.game.playerO].includes(m.sender))) throw '😺 *You are still in a game room* 😺\n\n*You can also delete the room by writing #delttt*'
     let room = Object.values(conn.game).find(room => room.state === 'WAITING' && (text ? room.name === text : true))
     // m.reply('[WIP Feature]')
     if (room) {
-        m.reply('Partner found!')
+        m.reply('*✅ A player entered the room*')
         room.o = m.chat
         room.game.playerO = m.sender
         room.state = 'PLAYING'
@@ -26,18 +26,26 @@ let handler = async (m, { conn, usedPrefix, command, text }) => {
             }[v]
         })
         let str = `
-Room ID: ${room.id}
+⭕️ *Classic game of jack or 3 in a row* ❌
+*How to play?* _Respond to the message sent by the Bot with the game board, the message must contain the position you want to be in (1,2,3,4,5,6,7,8,9)
+                
 ${arr.slice(0, 3).join('')}
 ${arr.slice(3, 6).join('')}
 ${arr.slice(6).join('')}
-Waiting @${room.game.currentTurn.split('@')[0]}
-Tap *give up* to give up
+                
+*It's @${room.game.currentTurn.split('@')[0]}'s turn*
+*- To surrender you can use the word command "#delttt"*
 `.trim()
-        if (room.x !== room.o) await conn.sendButton(room.x, str, author, ['Give up', 'hand over'], m, {
-            mentions: conn.parseMention(str)
+			m.reply(str)
+        if (room.x !== room.o) m.reply(str, room.x, {
+            contextInfo: {
+                mentionedJid: conn.parseMention(str)
+            }
         })
-        await conn.sendButton(room.o, str, author, ['Give up', 'hand over'], m, {
-            mentions: conn.parseMention(str)
+        m.reply(str, room.o, {
+            contextInfo: {
+                mentionedJid: conn.parseMention(str)
+            }
         })
     } else {
         room = {
@@ -48,7 +56,7 @@ Tap *give up* to give up
             state: 'WAITING'
         }
         if (text) room.name = text
-        m.reply('Waiting for a partner' + (text ? ` type the command below
+        m.reply('*🔁 Waiting for player 2 to join the room.* ' + (text ? `*Player 2 must type the command below respecting capitalization, periods and accents:
 ${usedPrefix}${command} ${text}` : ''))
         conn.game[room.id] = room
     }
